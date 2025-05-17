@@ -4,19 +4,18 @@ from torch.utils.data import DataLoader
 
 from tqdm import tqdm
 from model import VAE
-from ShapeNetChairs import ShapeNetChairs
+from ShapeNet import ShapeNet
 
 learning_rate = 0.005
-momentum = 0.9
 batch_size = 10
 epoch_num = 150
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = VAE().to(device)
-
+print(model)
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-data_train = ShapeNetChairs('datasets/shapenet10_chairs_nr.tar')
+data_train = ShapeNet('datasets/dataset_voxels.tar')
 train_dataloader = DataLoader(data_train, batch_size=batch_size, shuffle=True)
 
 for epoch in range(epoch_num):

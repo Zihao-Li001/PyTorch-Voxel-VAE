@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from model import VAE
-from ShapeNetChairs import ShapeNetChairs
+from ShapeNet import ShapeNet
 from utils.save_volume import save_output
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -12,7 +12,7 @@ checkpoint = torch.load("./models/vae.pt")
 model.load_state_dict(checkpoint)
 model.eval()
 
-data_train = ShapeNetChairs('datasets/shapenet10_chairs_nr.tar')
+data_train = ShapeNet('datasets/dataset_voxels.tar')
 train_dataloader = DataLoader(data_train, batch_size=1, shuffle=False)
 
 if not os.path.exists('reconstructions'):

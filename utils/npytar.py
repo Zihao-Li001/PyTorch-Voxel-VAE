@@ -48,7 +48,7 @@ class NpyTarReader(object):
         name = entry.name[len(PREFIX): -len(SUFFIX)]
         fileobj = self.tfile.extractfile(entry)
         buf = zlib.decompress(fileobj.read())
-        arr = np.load(io.BytesIO(buf))
+        arr = np.load(io.BytesIO(buf), allow_pickle=True)
         return arr, name
 
     def length(self):

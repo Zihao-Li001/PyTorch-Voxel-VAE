@@ -39,6 +39,6 @@ def save_output(output_arr, output_size, output_dir, file_idx):
     x, y, z = output_image.nonzero()
     fig = plt.figure()
     ax = fig.add_subplot(111, projection = '3d')
-    ax.scatter(x, y, z, zdir = 'z', c = 'red')
-    plt.savefig(output_dir + '/volume' + str(file_idx) + '.png')
+    ax.scatter(x, y, z, zdir = 'z', c = 'red',s=10)
+    plt.savefig(output_dir + '/volume' + str(file_idx) + '.png', dpi=300, bbox_inches='tight')
     plt.close()

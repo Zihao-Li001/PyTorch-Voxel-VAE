@@ -14,8 +14,8 @@ class Conv3dSamePadding(nn.Conv3d):
     def forward(self, input):
         return  self._conv_forward(self.zero_pad_3d(input), self.weight, self.bias)
 
-input_shape = (1, 32, 32, 32)
-z_dim = 128
+# input_shape = (1, 32, 32, 32)
+# z_dim = 128
 
 class VAE(nn.Module):
     def __init__(self):
