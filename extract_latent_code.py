@@ -27,13 +27,4 @@ if __name__ == "__main__":
     data_train = ShapeNet('datasets/dataset_voxels.tar')
     train_dataloader = DataLoader(data_train, batch_size=1, shuffle=False)
 
-    extract_latent_code(model, train_dataloader, device)
-
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# model = VAE().to(device)
-# checkpoint = torch.load("./models/vae.pt")
-# model.load_state_dict(checkpoint)
-# model.eval()
-# with torch.no_grad():
-#     mu, logvar = model.encode(torch.randn(1, 32, 32, 32).to(device))
-#     z = model.reparameterize(mu, logvar)
+    extract_latent_code(model, train_dataloader, device) # 
