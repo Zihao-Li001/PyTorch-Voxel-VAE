@@ -12,7 +12,7 @@ checkpoint = torch.load("./models/vae.pt")
 model.load_state_dict(checkpoint)
 model.eval()
 
-data_train = ShapeNet('datasets/test_dataset_voxels.tar')
+data_train = ShapeNet('datasets/test_dataset_voxels/')
 train_dataloader = DataLoader(data_train, batch_size=1, shuffle=False)
 
 if not os.path.exists('reconstructions'):
