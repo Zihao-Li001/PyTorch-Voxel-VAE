@@ -8,11 +8,12 @@ from utils.save_volume import save_output
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = VAE().to(device)
-checkpoint = torch.load("./models/vae.pt")
+checkpoint = torch.load("./models/vae.pth", map_location=device)
 model.load_state_dict(checkpoint)
 model.eval()
+# print(model)
 
-data_train = ShapeNet('datasets/test_dataset_voxels/')
+data_train = ShapeNet('datasets/test_dataset_voxels')
 train_dataloader = DataLoader(data_train, batch_size=1, shuffle=False)
 
 if not os.path.exists('reconstructions'):
@@ -21,13 +22,12 @@ if not os.path.exists('reconstructions'):
 for i, data in enumerate(train_dataloader):
     sample = data.to(device)
 
-    reconstructions = model(sample)
-
-    reconstructions[reconstructions > 0] = 1
-    reconstructions[reconstructions < 0] = 0
-
+    reconstructions,_,_ = model(sample)
+    reconstructions = torch.sigmoid(reconstructions)
+    print(reconstructions.min(), reconstructions.max())
+    # reconstructions = reconstructions.view(1, 32, 32, 32)
+    reconstructions = (reconstructions > 0.5).float()
     reconstructions = reconstructions.detach().cpu()
-
     save_output(reconstructions[0][0], 32, 'reconstructions', i)
 
     print("Saved", i)

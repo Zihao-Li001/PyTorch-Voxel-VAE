@@ -158,12 +158,17 @@ class VAE(nn.Module):
 
         dec_conv5 = self.decode(z)
 
-        return self.decoder_output(dec_conv5)
+        return self.decoder_output(dec_conv5), mu, sigma
 
-    def loss(self, inputs, outputs):
+    def loss(self, inputs, outputs, mu, sigma, beta=0.005):
         outputs_clip = torch.clip(torch.sigmoid(outputs), 1e-7, 1.0 - 1e-7)
-        loss = -(98.0 * inputs * torch.log(outputs_clip) + 2.0 * (1.0 - inputs) * torch.log(1.0 - outputs_clip)) / 100.0
-        return loss.mean()
+        bce = -(98.0 * inputs * torch.log(outputs_clip) + 2.0 * (1.0 - inputs) * torch.log(1.0 - outputs_clip)) / 100.0
+        bce = bce.mean()
+
+        # KLD
+        kld = -0.5 * torch.sum(1 + sigma - mu.pow(2) - sigma.exp()) / inputs.size(0) 
+
+        return bce + beta*kld , bce, kld
 
 # from torchsummary import summary
 
