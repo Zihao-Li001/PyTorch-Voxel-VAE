@@ -24,5 +24,5 @@ class ShapeNet(Dataset):
 
     def __getitem__(self, index):
         x = self.xc[index]
-        # return 3.0 * x - 1.0 # normalize to [-1, 2] for matching the VAE
-        return x
+        return 3.0 * x - 1.0 # normalize to [-1, 2] for matching the VAE
+        # return x

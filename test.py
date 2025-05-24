@@ -13,8 +13,8 @@ model.load_state_dict(checkpoint)
 model.eval()
 # print(model)
 
-data_train = ShapeNet('datasets/test_dataset_voxels.tar')
-train_dataloader = DataLoader(data_train, batch_size=1, shuffle=False)
+data_train = ShapeNet('datasets/dataset_voxels.tar')
+train_dataloader = DataLoader(data_train, batch_size=1, shuffle=True)
 
 if not os.path.exists('reconstructions'):
     os.makedirs('reconstructions')
@@ -31,6 +31,7 @@ for i, data in enumerate(train_dataloader):
     save_output(reconstructions[0][0], 32, 'reconstructions', i)
 
     print("Saved", i)
-
+    if i == 10:
+        break
     if i != 0 and i % 100 == 0:
         break

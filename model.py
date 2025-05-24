@@ -166,15 +166,18 @@ class VAE(nn.Module):
         return self.decoder_output(dec_conv5), mu, sigma
 
     def loss(self, inputs, outputs, mu, logvar, beta):
-        outputs_sigmoid = torch.sigmoid(outputs)
+        # outputs_sigmoid = torch.sigmoid(outputs)
 
-        outputs_clip = torch.clamp(outputs, -10, 10)
-        # weights = torch.where(inputs > 0.5, 0.98, 0.02)
-        # bce = -(weights * inputs * torch.log(outputs_clip) + (1.0 - inputs) * torch.log(1.0 - outputs_clip))
-        # bce = bce.mean()
-        recon_loss = F.binary_cross_entropy(outputs, inputs, weight=torch.tensor(49.0).to(inputs.device))
+        outputs_clip = torch.clip(torch.sigmoid(outputs), 1e-7, 1.0 - 1e-7)
+        bce = -(98.0 * inputs * torch.log(outputs_clip) + 2.0 * (1.0 - inputs) * torch.log(1.0 - outputs_clip)) / 100.0
+        bce = bce.mean()
+        
+        # bce = F.binary_cross_entropy(outputs_clip, inputs, weight=torch.tensor(1.0).to(inputs.device), reduction='mean')
+        recon_loss = bce
         kld_loss = -0.5 * torch.mean(1 + logvar - mu.pow(2) - logvar.exp()) / inputs.size(0) # KLD loss
         total_loss = recon_loss + beta * kld_loss
+        # outputs_clip = torch.clip(torch.sigmoid(outputs), 1e-7, 1.0 - 1e-7)
+        # bce = -(98.0 * inputs * torch.log(outputs_clip) + 2.0 * (1.0 - inputs) * torch.log(1.0 - outputs_clip)) / 100.0
 
         return total_loss, recon_loss, kld_loss
     

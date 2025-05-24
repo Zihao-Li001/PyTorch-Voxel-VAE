@@ -3,17 +3,17 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 
 from tqdm import tqdm
-from model import SparseVAE
+from model import VAE
 from utils.ShapeNet import ShapeNet
 from utils.visual_loss import plot_loss, calculate_metrics
 
-learning_rate = 0.0001
-batch_size = 10
+learning_rate = 0.001
+batch_size = 16
 epoch_num = 100
-beta = 0.001
+beta = 0.0001
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = SparseVAE().to(device)
+model = VAE().to(device)
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
 data_train = ShapeNet('datasets/dataset_voxels.tar')
@@ -31,14 +31,13 @@ for epoch in range(epoch_num):
 
     for i, data in enumerate(tqdm(train_dataloader)):
         try:
-            inputs = data.to(device).float()
-            inputs = inputs.clamp(0, 1)
+            inputs_for_model = data.to(device).float()
+            inputs_for_loss = inputs_for_model.clamp(0, 1).to(device).float()
 
             optimizer.zero_grad()
-            outputs, mu, sigma = model(inputs)
+            outputs, mu, sigma = model(inputs_for_model)
 
-            loss, recon_loss, kl_loss = model.loss(inputs, outputs, 
-                                                mu, sigma, beta)
+            loss, recon_loss, kl_loss = model.loss(inputs_for_loss, outputs, mu, sigma, beta)
             loss.backward()
             optimizer.step()
 
@@ -46,11 +45,11 @@ for epoch in range(epoch_num):
             epoch_metrics['total'] += loss.item()
             epoch_metrics['recon'] += recon_loss.item()
             epoch_metrics['kl'] += kl_loss.item()
-            if i % 10 == 0:
-                solid_voxel_accuracy, empty_voxel_accuracy, iou = calculate_metrics(outputs, inputs)
-                epoch_metrics['solid_acc'] += solid_voxel_accuracy.item()
-                epoch_metrics['empty_acc'] += empty_voxel_accuracy.item()
-                epoch_metrics['iou'] += iou
+            # if i % 10 == 0:
+            solid_voxel_accuracy, empty_voxel_accuracy, iou = calculate_metrics(outputs, inputs_for_loss)
+            epoch_metrics['solid_acc'] += solid_voxel_accuracy.item()
+            epoch_metrics['empty_acc'] += empty_voxel_accuracy.item()
+            epoch_metrics['iou'] += iou
 
         except Exception as e:
             print(f"Error at batch {i} in epoch {epoch}: {e}")

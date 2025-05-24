@@ -11,7 +11,7 @@ dataset = ShapeNet('datasets/'+str(datasetName)+'_voxels.tar')
 # test_dataset = ShapeNet('datasets/test_dataset_voxels.tar')
 # 基础检查
 print(f"数据集长度: {len(dataset)}")
-sample = dataset[0]
+sample = dataset[500]
 print(f"单个样本形状: {sample.shape}")
 print(f"数据类型: {sample.dtype}")
 print(f"值范围: Min={sample.min()}, Max={sample.max()}")
