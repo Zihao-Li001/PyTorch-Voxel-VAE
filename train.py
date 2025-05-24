@@ -3,16 +3,17 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 
 from tqdm import tqdm
-from model import VAE
+from model import SparseVAE
 from utils.ShapeNet import ShapeNet
 from utils.visual_loss import plot_loss, calculate_metrics
 
 learning_rate = 0.0001
 batch_size = 10
 epoch_num = 100
+beta = 0.001
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = VAE().to(device)
+model = SparseVAE().to(device)
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
 data_train = ShapeNet('datasets/dataset_voxels.tar')
@@ -21,7 +22,7 @@ train_dataloader = DataLoader(data_train, batch_size=batch_size, shuffle=True)
 # Debug @ check loss_history @ May 23,11:04 Li
 loss_history = {'total_loss': [], 'recon_loss': [], 'kl_loss': [],
                 'solid_acc': [], 'empty_acc': []}
-beta = 1.0
+
 
 for epoch in range(epoch_num):
     model.train()
