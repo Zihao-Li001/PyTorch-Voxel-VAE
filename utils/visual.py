@@ -48,7 +48,7 @@ def visualize_obj(file_path):
 if __name__ == "__main__":
     for count in range(0, 24):
         # Assuming the OBJ files are named 'volume0.obj', 'volume1.obj', ..., 'volume99.obj'
-        fileName = './reconstructions/volume' + str(count) + '.obj'
+        fileName = './../reconstructions/volume' + str(count) + '.obj'
         print("Visualizing:", fileName)
         visualize_obj(file_path=fileName)
         
