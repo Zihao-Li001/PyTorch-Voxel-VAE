@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-
+from torch.nn import functional as F
 from functools import reduce
 from operator import __add__
 
@@ -59,15 +59,18 @@ class VAE(nn.Module):
             nn.LeakyReLU()
         )
 
-        self.mu = nn.Sequential(
-            nn.Linear(343, 128),
-            nn.BatchNorm1d(128)
-        )
+        # self.mu = nn.Sequential(
+        #     nn.Linear(343, 128),
+        #     nn.BatchNorm1d(128)
+        # )
 
-        self.sigma = nn.Sequential(
-            nn.Linear(343, 128),
-            nn.BatchNorm1d(128)
-        )
+        # self.sigma = nn.Sequential(
+        #     nn.Linear(343, 128),
+        #     nn.BatchNorm1d(128)
+        # )
+        self.mu = nn.Linear(343, 128) # 移除batchNorm
+        self.sigma = nn.Linear(343, 128)
+
 
         # Mul mu and sigma
         # z = Lambda(
@@ -118,7 +121,8 @@ class VAE(nn.Module):
 
         self.decoder_output = nn.Sequential(
             nn.Conv3d(8, 1, kernel_size=3, stride=1, padding=1),
-            nn.LeakyReLU()
+            # nn.LeakyReLU()
+            nn.LeakyReLU() # 保证输出在0-1之间
         )
 
     def reparameterize(self, mu, sigma):
@@ -154,25 +158,34 @@ class VAE(nn.Module):
         return decoder
 
     def forward(self, x):
+        # print(f"Input shape: {x.shape}") # Debug @ Check input shape, sh
         mu, sigma, z = self.encode(x)
 
         dec_conv5 = self.decode(z)
 
         return self.decoder_output(dec_conv5), mu, sigma
 
-    def loss(self, inputs, outputs, mu, sigma, beta=0.005):
-        outputs_clip = torch.clip(torch.sigmoid(outputs), 1e-7, 1.0 - 1e-7)
-        bce = -(98.0 * inputs * torch.log(outputs_clip) + 2.0 * (1.0 - inputs) * torch.log(1.0 - outputs_clip)) / 100.0
-        bce = bce.mean()
+    def loss(self, inputs, outputs, mu, logvar, beta):
+        outputs_sigmoid = torch.sigmoid(outputs)
 
-        # KLD
-        kld = -0.5 * torch.sum(1 + sigma - mu.pow(2) - sigma.exp()) / inputs.size(0) 
+        outputs_clip = torch.clamp(outputs, -10, 10)
+        # weights = torch.where(inputs > 0.5, 0.98, 0.02)
+        # bce = -(weights * inputs * torch.log(outputs_clip) + (1.0 - inputs) * torch.log(1.0 - outputs_clip))
+        # bce = bce.mean()
+        recon_loss = F.binary_cross_entropy(outputs, inputs, weight=torch.tensor(49.0).to(inputs.device))
+        kld_loss = -0.5 * torch.mean(1 + logvar - mu.pow(2) - logvar.exp()) / inputs.size(0) # KLD loss
+        total_loss = recon_loss + beta * kld_loss
 
-        return bce + beta*kld , bce, kld
+        return total_loss, recon_loss, kld_loss
+    
 
-# from torchsummary import summary
+    # def loss(self, inputs, outputs, mu, sigma, beta):
 
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# model = VAE().to(device)
+    #     outputs_clip = torch.clip(torch.sigmoid(outputs), 1e-7, 1.0 - 1e-7)
+    #     bce = -(98.0 * inputs * torch.log(outputs_clip) + 2.0 * (1.0 - inputs) * torch.log(1.0 - outputs_clip)) / 100.0
+    #     bce = bce.mean()
 
-# summary(model, (1, 32, 32, 32), batch_size=2)
+    #     # KLD
+    #     kld = -0.5 * torch.sum(1 + sigma - mu.pow(2) - sigma.exp()) / inputs.size(0) 
+
+    #     return bce + beta*kld , bce, kld

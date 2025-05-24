@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from model import VAE
-from ShapeNet import ShapeNet
+from utils.ShapeNet import ShapeNet
 from utils.save_volume import save_output
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -13,7 +13,7 @@ model.load_state_dict(checkpoint)
 model.eval()
 # print(model)
 
-data_train = ShapeNet('datasets/test_dataset_voxels')
+data_train = ShapeNet('datasets/test_dataset_voxels.tar')
 train_dataloader = DataLoader(data_train, batch_size=1, shuffle=False)
 
 if not os.path.exists('reconstructions'):
