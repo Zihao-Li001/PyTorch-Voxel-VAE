@@ -21,7 +21,7 @@ train_dataloader = DataLoader(data_train, batch_size=batch_size, shuffle=True)
 # Debug @ check loss_history @ May 23,11:04 Li
 loss_history = {'total_loss': [], 'recon_loss': [], 'kl_loss': [],
                 'solid_acc': [], 'empty_acc': []}
-beta = 0.0
+beta = 1.0
 
 for epoch in range(epoch_num):
     model.train()
