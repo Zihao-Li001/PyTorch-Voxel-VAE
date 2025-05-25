@@ -23,13 +23,13 @@ for epoch in range(epoch_num):
     model.train(True)
     running_loss = 0.0
     for i, data in enumerate(tqdm(train_dataloader)):
-        inputs = data.to(device)
-
+        inputs_for_model = data.to(device).float()
+        inputs_for_loss = inputs_for_model.clamp(0, 1)
         optimizer.zero_grad()
 
-        outputs = model(inputs)
+        outputs = model(inputs_for_model)
         
-        loss = model.loss(inputs, outputs)
+        loss = model.loss(inputs_for_loss, outputs)
 
         loss.backward()
         optimizer.step()
