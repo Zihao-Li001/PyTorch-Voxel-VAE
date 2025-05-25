@@ -158,12 +158,25 @@ class VAE(nn.Module):
 
         dec_conv5 = self.decode(z)
 
-        return self.decoder_output(dec_conv5)
+        return self.decoder_output(dec_conv5), mu, sigma
 
-    def loss(self, inputs, outputs):
+    def loss(self, inputs, outputs, mu, logvar, beta):
         outputs_clip = torch.clip(torch.sigmoid(outputs), 1e-7, 1.0 - 1e-7)
-        loss = -(98.0 * inputs * torch.log(outputs_clip) + 2.0 * (1.0 - inputs) * torch.log(1.0 - outputs_clip)) / 100.0
-        return loss.mean()
+        
+        # the weight for solid and empty voxels should be carefully set, 
+        # normal it depends on the fraction of solid and empty in the dataset
+        # heer use 98% for solid and 2% for empty
+        # @ Zihao_Li
+        recon_loss = -(98.0 * inputs * torch.log(outputs_clip) + 2.0 * (1.0 - inputs) * torch.log(1.0 - outputs_clip)) / 100.0
+        recon_loss = torch.mean(recon_loss)
+        # Use kullback-Leibler divergence for the latent space
+        # @ Zihao_Li
+        kl_loss = -0.5 * torch.mean(1 + logvar - mu.pow(2) - logvar.exp())
+        
+        # beta is a hyperparameter that controls the weight of the KL divergence term
+        # @ Zihao_Li
+        loss = recon_loss + beta * kl_loss
+        return loss, recon_loss, kl_loss
 
 # from torchsummary import summary
 

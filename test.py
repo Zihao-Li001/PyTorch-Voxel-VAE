@@ -21,7 +21,7 @@ if not os.path.exists('reconstructions'):
 for i, data in enumerate(train_dataloader):
     sample = data.to(device)
 
-    reconstructions = model(sample)
+    reconstructions,_,_ = model(sample)
 
     reconstructions[reconstructions > 0] = 1
     reconstructions[reconstructions < 0] = 0
