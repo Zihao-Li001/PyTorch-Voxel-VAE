@@ -10,7 +10,7 @@ from utils.visual_loss import plot_loss, calculate_metrics
 learning_rate = 0.001
 batch_size = 16
 epoch_num = 100
-beta = 0.0001
+beta = 0.001
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = VAE().to(device)

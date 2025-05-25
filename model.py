@@ -169,6 +169,10 @@ class VAE(nn.Module):
         # outputs_sigmoid = torch.sigmoid(outputs)
 
         outputs_clip = torch.clip(torch.sigmoid(outputs), 1e-7, 1.0 - 1e-7)
+        
+        # the weight for solid and empty voxels should be carefully set, 
+        # normal it depends on the fraction of solid and empty in the dataset
+        # heer use 98% for solid and 2% for empty
         bce = -(98.0 * inputs * torch.log(outputs_clip) + 2.0 * (1.0 - inputs) * torch.log(1.0 - outputs_clip)) / 100.0
         bce = bce.mean()
         
