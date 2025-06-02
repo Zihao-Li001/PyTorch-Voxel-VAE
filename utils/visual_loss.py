@@ -13,7 +13,7 @@ def calculate_metrics(recon, target):
         target = target > 0.5
 
         solid_voxel_accuracy = (pred[target]).float().mean()
-        empty_voxel_accuracy = (pred[~target]).float().mean()
+        empty_voxel_accuracy = (~pred[~target]).float().mean()
 
         intersection = (pred & target).float().sum().item()
         union = (pred | target).float().sum().item()
@@ -32,4 +32,17 @@ def plot_loss(loss_history, recon_history, kl_history, loss_beta):
     plt.title('Training Losses')
     str_beta = 'beta_' + str(loss_beta)
     plt.savefig('vae_loss_'+ str_beta + '.png')
+    plt.show()
+
+def plot_metrics(solid_acc_history, empty_acc_history, iou_history, loss_beta):
+    plt.plot(solid_acc_history, label='Solid Voxel Accuracy')
+    plt.plot(empty_acc_history, label='Empty Voxel Accuracy')
+    plt.plot(iou_history, label='IoU')
+    plt.xlabel('Epoch')
+    plt.ylabel('Metric Value')
+    plt.legend()
+    plt.grid()
+    str_beta = 'beta_' + str(loss_beta)
+    plt.title('Voxel Metrics Over Epochs')
+    plt.savefig('voxel_metrics'+str_beta+'.png')
     plt.show()

@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from model import VAE
 from utils.ShapeNet import ShapeNet
-from utils.visual_loss import plot_loss, calculate_metrics
+from utils.visual_loss import plot_loss, plot_metrics, calculate_metrics
 
 learning_rate = 0.001
 batch_size = 16
@@ -21,7 +21,7 @@ train_dataloader = DataLoader(data_train, batch_size=batch_size, shuffle=True)
 
 # Debug @ check loss_history @ May 23,11:04 Li
 loss_history = {'total_loss': [], 'recon_loss': [], 'kl_loss': [],
-                'solid_acc': [], 'empty_acc': []}
+                'solid_acc': [], 'empty_acc': [], 'iou': []}
 
 
 for epoch in range(epoch_num):
@@ -65,6 +65,7 @@ for epoch in range(epoch_num):
     loss_history['kl_loss'].append(epoch_metrics['kl'])
     loss_history['solid_acc'].append(epoch_metrics['solid_acc'])
     loss_history['empty_acc'].append(epoch_metrics['empty_acc'])
+    loss_history['iou'].append(epoch_metrics['iou'])
 
     print(f"\nEpoch {epoch} Summary:")
     print(f"  Loss: {epoch_metrics['total']:.4f}, "
@@ -73,24 +74,9 @@ for epoch in range(epoch_num):
     print(f"  Solid Voxel Accuracy: {epoch_metrics['solid_acc']:.4f}, "
           f"Empty Voxel Accuracy: {epoch_metrics['empty_acc']:.4f}, "
           f"IOU: {epoch_metrics['iou']:.4f}")
-    # @ Debug @ check loss_history @ May 24,11:53 Li
 
-    # Debug @ check loss_history @ May 23,11:04 Li
-    # avg_total_loss = total_loss / len(train_dataloader)  
-
-    # # Debug @ check loss_history @_May 23,11:04 Li   
-    # avg_recon = total_recon / len(train_dataloader)
-    # avg_kl = total_kl / len(train_dataloader)
-
-    # loss_history.append(avg_total_loss)
-    # recon_history.append(avg_recon)
-    # kl_history.append(avg_kl)
-
-#     print("Epoch", epoch, "Average Loss", avg_total_loss, 
-#           "Average Recon Loss", avg_recon, "Average KL Loss", avg_kl)
-#     print(f"  Solid voxel accuracy: {(recon[voxel_data>0.5] > 0.5).float().mean():.3f}")
 plot_loss(loss_history['total_loss'], loss_history['recon_loss'], loss_history['kl_loss'], beta)
-
+plot_metrics(loss_history['solid_acc'], loss_history['empty_acc'], loss_history['iou'], beta)
 
 torch.save(model.state_dict(), "./models/vae.pth")
 

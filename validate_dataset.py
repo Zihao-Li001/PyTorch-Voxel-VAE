@@ -3,8 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-datasetName = 'dataset'
-# datasetName = 'test_dataset'
+# datasetName = 'dataset'
+datasetName = 'testset'
 
 # 加载数据集
 dataset = ShapeNet('datasets/'+datasetName+'_voxels.tar')
