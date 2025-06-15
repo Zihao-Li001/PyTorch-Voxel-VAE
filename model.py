@@ -121,8 +121,7 @@ class VAE(nn.Module):
 
         self.decoder_output = nn.Sequential(
             nn.Conv3d(8, 1, kernel_size=3, stride=1, padding=1),
-            # nn.LeakyReLU()
-            nn.LeakyReLU() # 保证输出在0-1之间
+            nn.LeakyReLU() 
         )
 
     def reparameterize(self, mu, sigma):
@@ -166,20 +165,14 @@ class VAE(nn.Module):
         return self.decoder_output(dec_conv5), mu, sigma
 
     def loss(self, inputs, outputs, mu, logvar, beta):
-        # outputs_sigmoid = torch.sigmoid(outputs)
-
         outputs_clip = torch.clip(torch.sigmoid(outputs), 1e-7, 1.0 - 1e-7)
+        
         bce = -(98.0 * inputs * torch.log(outputs_clip) + 2.0 * (1.0 - inputs) * torch.log(1.0 - outputs_clip)) / 100.0
         bce = bce.mean()
         
-        # bce = F.binary_cross_entropy(outputs_clip, inputs, weight=torch.tensor(1.0).to(inputs.device), reduction='mean')
-        recon_loss = bce
-        kld_loss = -0.5 * torch.mean(1 + logvar - mu.pow(2) - logvar.exp()) / inputs.size(0) # KLD loss
-        total_loss = recon_loss + beta * kld_loss
-        # outputs_clip = torch.clip(torch.sigmoid(outputs), 1e-7, 1.0 - 1e-7)
-        # bce = -(98.0 * inputs * torch.log(outputs_clip) + 2.0 * (1.0 - inputs) * torch.log(1.0 - outputs_clip)) / 100.0
-
-        return total_loss, recon_loss, kld_loss
+        kld = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))  # KLD changed by Li @ Jun 15, 14:38
+        
+        return bce + beta * kld, bce, kld
     
 
     # def loss(self, inputs, outputs, mu, sigma, beta):
