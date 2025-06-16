@@ -121,8 +121,7 @@ class VAE(nn.Module):
 
         self.decoder_output = nn.Sequential(
             nn.Conv3d(8, 1, kernel_size=3, stride=1, padding=1),
-            # nn.LeakyReLU()
-            nn.LeakyReLU() # 保证输出在0-1之间
+            nn.LeakyReLU() 
         )
 
     def reparameterize(self, mu, sigma):
@@ -134,21 +133,16 @@ class VAE(nn.Module):
         encoder = self.enc_conv2(encoder)
         encoder = self.enc_conv3(encoder)
         encoder = self.enc_conv4(encoder)
-
         fc1 = self.enc_fc1(encoder)
-
         mu = self.mu(fc1)
         sigma = self.sigma(fc1)
-
         z = self.reparameterize(mu, sigma)
 
         return mu, sigma, z
 
-    def decode(self, x):
-        decoder = self.dec_fc1(x)
-        
+    def decode(self, z):
+        decoder = self.dec_fc1(z)
         decoder = self.dec_unflatten(decoder)
-
         decoder = self.dec_conv1(decoder)
         decoder = self.dec_conv2(decoder)
         decoder = self.dec_conv3(decoder)
@@ -166,33 +160,15 @@ class VAE(nn.Module):
         return self.decoder_output(dec_conv5), mu, sigma
 
     def loss(self, inputs, outputs, mu, logvar, beta):
-        # outputs_sigmoid = torch.sigmoid(outputs)
-
-        outputs_clip = torch.clip(torch.sigmoid(outputs), 1e-7, 1.0 - 1e-7)
+        outputs_clip = torch.clip(torch.sigmoid(outputs), 0.1, 1.0 - 1e-7)
         
         # the weight for solid and empty voxels should be carefully set, 
         # normal it depends on the fraction of solid and empty in the dataset
         # heer use 98% for solid and 2% for empty
-        bce = -(98.0 * inputs * torch.log(outputs_clip) + 2.0 * (1.0 - inputs) * torch.log(1.0 - outputs_clip)) / 100.0
+        bce = -(70.0 * inputs * torch.log(outputs_clip) + 30.0 * (1.0 - inputs) * torch.log(1.0 - outputs_clip)) / 100.0
         bce = bce.mean()
-        
-        # bce = F.binary_cross_entropy(outputs_clip, inputs, weight=torch.tensor(1.0).to(inputs.device), reduction='mean')
         recon_loss = bce
-        kld_loss = -0.5 * torch.mean(1 + logvar - mu.pow(2) - logvar.exp()) / inputs.size(0) # KLD loss
-        total_loss = recon_loss + beta * kld_loss
-        # outputs_clip = torch.clip(torch.sigmoid(outputs), 1e-7, 1.0 - 1e-7)
-        # bce = -(98.0 * inputs * torch.log(outputs_clip) + 2.0 * (1.0 - inputs) * torch.log(1.0 - outputs_clip)) / 100.0
 
-        return total_loss, recon_loss, kld_loss
-    
+        kld_loss = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
 
-    # def loss(self, inputs, outputs, mu, sigma, beta):
-
-    #     outputs_clip = torch.clip(torch.sigmoid(outputs), 1e-7, 1.0 - 1e-7)
-    #     bce = -(98.0 * inputs * torch.log(outputs_clip) + 2.0 * (1.0 - inputs) * torch.log(1.0 - outputs_clip)) / 100.0
-    #     bce = bce.mean()
-
-    #     # KLD
-    #     kld = -0.5 * torch.sum(1 + sigma - mu.pow(2) - sigma.exp()) / inputs.size(0) 
-
-    #     return bce + beta*kld , bce, kld
+        return recon_loss + beta * kld_loss, recon_loss, kld_loss

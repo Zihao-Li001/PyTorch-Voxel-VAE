@@ -10,13 +10,14 @@ from utils.visual_loss import plot_loss, plot_metrics, calculate_metrics
 learning_rate = 0.001
 batch_size = 16
 epoch_num = 100
-beta = 0.001
+beta = 0.1
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = VAE().to(device)
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
 data_train = ShapeNet('datasets/dataset_voxels.tar')
+# data_train = ShapeNet('datasets/shapenet10_chairs_nr.tar')
 train_dataloader = DataLoader(data_train, batch_size=batch_size, shuffle=True)
 
 # Debug @ check loss_history @ May 23,11:04 Li
@@ -31,13 +32,12 @@ for epoch in range(epoch_num):
 
     for i, data in enumerate(tqdm(train_dataloader)):
         try:
-            inputs_for_model = data.to(device).float()
-            inputs_for_loss = inputs_for_model.clamp(0, 1).to(device).float()
+            inputs = data.to(device).float()
 
             optimizer.zero_grad()
-            outputs, mu, sigma = model(inputs_for_model)
+            outputs, mu, sigma = model(inputs)
 
-            loss, recon_loss, kl_loss = model.loss(inputs_for_loss, outputs, mu, sigma, beta)
+            loss, recon_loss, kl_loss = model.loss(inputs, outputs, mu, sigma, beta)
             loss.backward()
             optimizer.step()
 
@@ -46,7 +46,7 @@ for epoch in range(epoch_num):
             epoch_metrics['recon'] += recon_loss.item()
             epoch_metrics['kl'] += kl_loss.item()
             # if i % 10 == 0:
-            solid_voxel_accuracy, empty_voxel_accuracy, iou = calculate_metrics(outputs, inputs_for_loss)
+            solid_voxel_accuracy, empty_voxel_accuracy, iou = calculate_metrics(outputs, inputs)
             epoch_metrics['solid_acc'] += solid_voxel_accuracy.item()
             epoch_metrics['empty_acc'] += empty_voxel_accuracy.item()
             epoch_metrics['iou'] += iou
