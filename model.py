@@ -165,9 +165,7 @@ class VAE(nn.Module):
         # the weight for solid and empty voxels should be carefully set, 
         # normal it depends on the fraction of solid and empty in the dataset
         # heer use 98% for solid and 2% for empty
-        bce = -(70.0 * inputs * torch.log(outputs_clip) + 30.0 * (1.0 - inputs) * torch.log(1.0 - outputs_clip)) / 100.0
-        bce = bce.mean()
-        recon_loss = bce
+        recon_loss = torch.mean(-(70.0 * inputs * torch.log(outputs_clip) + 30.0 * (1.0 - inputs) * torch.log(1.0 - outputs_clip)) / 100.0)
 
         kld_loss = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
 

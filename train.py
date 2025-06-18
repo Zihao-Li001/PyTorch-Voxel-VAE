@@ -20,9 +20,12 @@ data_train = ShapeNet('datasets/dataset_voxels.tar')
 # data_train = ShapeNet('datasets/shapenet10_chairs_nr.tar')
 train_dataloader = DataLoader(data_train, batch_size=batch_size, shuffle=True)
 
-# Debug @ check loss_history @ May 23,11:04 Li
-loss_history = {'total_loss': [], 'recon_loss': [], 'kl_loss': [],
-                'solid_acc': [], 'empty_acc': [], 'iou': []}
+loss_history = {'total_loss': [], 
+                'recon_loss': [], 
+                'kl_loss': [],
+                'solid_acc': [], 
+                'empty_acc': [], 
+                'iou': []}
 
 
 for epoch in range(epoch_num):
